@@ -55,6 +55,17 @@ class PlayerFragment : Fragment(R.layout.fragment_player) {
                 override fun onStopTrackingTouch(p0: SeekBar?) {}
             }
         )
+
+        Thread(Runnable {
+            while (mp != null) {
+                try {
+                    var msg = Message()
+                    msg.what = mp.currentPosition
+                    handler.sendMessage(msg)
+                    Thread.sleep(1000)
+                } catch (e: InterruptedException) {}
+            }
+        }).start()
     }
 
     private fun initiliseSeekbar() {
@@ -72,6 +83,31 @@ class PlayerFragment : Fragment(R.layout.fragment_player) {
 
             }
         }, 0)
+
+    }
+
+    @SuppressLint("HndlerLeak")
+    var handler = object : Handler() {
+        override fun handleMessage(msg: Message) {
+            var currentPosition = msg.what
+
+            var elapsedTime = createTimeLabel(currentPosition)
+            elapsedTimeLabel.text = elapsedTime
+
+            var remainingTime = createTimeLabel(totalTime - currentPosition)
+            remainingTimeLabel.text = "-$remainingTime"
+        }
+    }
+
+    fun createTimeLabel(time: Int): String {
+        var timeLabel = ""
+        var min = time / 1000 / 60
+        var sec = time / 1000 % 60
+
+        timeLabel = "$min:"
+        if (sec < 10) timeLabel += "0"
+        timeLabel += sec
+        return timeLabel
     }
 }
 
